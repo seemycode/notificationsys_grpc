@@ -1,0 +1,14 @@
+name: notification_sys
+private: True
+publish_to: none
+version: 0.0.1
+description: Notification System
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  grpc: 3.0.2
+  protobuf: 2.0.0
+  crypto: ^3.0.1
+assets:
+  - keys/env.json # helper json file that contains vars used throughout the code  
+  

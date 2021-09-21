@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+import 'google/protobuf/timestamp.proto';
+
+package notification_sys;
+
+service SimpleMessage {
+    rpc LogDevice(Device) returns (StandardResponse);
+    rpc SendMessage(Message) returns (StandardResponse);
+    rpc LogOutDevice(Device) returns (StandardResponse);
+} 
+
+message User {
+    string userId = 1;
+}
+
+message Device {
+    string fcmid = 1;
+    User user = 2;
+    string deviceId = 3;
+    google.protobuf.Timestamp lastAccess = 4;
+}
+
+message StandardResponse {
+    string status = 1;
+    string errorCode = 2;
+    string errorMessage = 3;
+}
+
+message Recipient {
+    string userId = 1;
+}
+
+message Message {
+    repeated Recipient recipients = 1;
+    string message = 2;
+}
