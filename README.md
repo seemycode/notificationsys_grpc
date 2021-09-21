@@ -59,27 +59,40 @@ gcloud auth configure-docker
 
 ## Running ##
 **This generates classes for proto**
+```
 protoc --include_imports --include_source_info --proto_path protos/ --descriptor_set_out=lib/src/generated/api_descriptor.pb --dart_out=grpc:lib/src/generated protos/sm.proto google/protobuf/timestamp.proto
+```
 
 **This runs the server**
+```
 dart bin/sm_server.dart
+```
 
 **This runs a client example**
+```
 dart bin/sm_client.dart
+```
 
 ## Deploying ##
-Change api_config.yaml backend address to CloudRun URL (replace https to grpc)
-docker build -t grc.io/<your_gcp_project>/grpc-notification-sys:v0.0.1 .
+```
+# First change api_config.yaml backend > address to CloudRun URL (replace https to grpc)
+docker build -t grc.io/<your_gcp_project>/grpc-notification-sys:v0.0.1 .```
 docker push gcr.io/<your_gcp_project>/grpc-notification-sys:v0.0.1
+```
 
 ## Cloud Run ##
+```
 gcloud run deploy --image gcr.io/<your_gcp_project>/grpc-notification-sys:v0.0.1 --memory 1Gi --port=50050 --use-http2 --allow-unauthenticated
 gcloud run services describe grpc-notification-sys
+```
 
 ## API Gateway ##
+```
+# Replace with your own values
 gcloud api-gateway api-configs create grpc-notification-sys-config --api=notification-sys --project=<your_gcp_project> --gr-files=lib/src/generated/api_descriptor.pb,protos/api_config.yaml
 gcloud api-gateway gateways create grpc-notification-sys-gateway --api=notification-sys-config --location=us-east1 --project=<your_gcp_project>
 gcloud api-gateway describe grpc-notificationsys-gateway --location=us-east1 --project=<your_gcp_project>
+```
 
 ## env.json File Structure (To replace with your own values) ##
 ```json
