@@ -94,7 +94,7 @@ gcloud api-gateway gateways create grpc-notification-sys-gateway --api=notificat
 gcloud api-gateway describe grpc-notificationsys-gateway --location=us-east1 --project=<your_gcp_project>
 ```
 
-## env.json File Structure (To replace with your own values) ##
+## Set an env.json file ##
 ```json
 {
     "gcp_project_name": "<replace_it_with_your_own>", 
