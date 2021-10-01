@@ -97,11 +97,11 @@ gcloud api-gateway describe grpc-notificationsys-gateway --location=us-east1 --p
 ## env.json File Structure (To replace with your own values) ##
 ```json
 {
-    "gcp_project_name": "<replace_it_with_your_own>",  # something such as grpc-notification-sys-abcdefgh-ue.a.run.ap
-    "gcp_sa_key_filename": "<replace_it_with_your_own>", # something such as keys/notification-sys-abcdefghijkl.json
-    "cloud_run_url_without_https": "<replace_it_with_your_own>", # something such as grpcs://grpc-notification-sys-abcdefgh-ue.a.run.app
-    "firebase_sa_key_filename": "<replace_it_with_your_own>", # something such as keys/notificationsys-abcd-firebase-adminsdk-sadsd-lalaalala.json
-    "firebase_project_name": "<replace_it_with_your_own>", # something such as projects/notificationsys-abcd
+    "gcp_project_name": "<replace_it_with_your_own>", 
+    "gcp_sa_key_filename": "<replace_it_with_your_own>",
+    "cloud_run_url_without_https": "<replace_it_with_your_own>", 
+    "firebase_sa_key_filename": "<replace_it_with_your_own>",
+    "firebase_project_name": "<replace_it_with_your_own>", 
     "local_postgres_connection_json": {
             "host": "localhost", "port": 5432, "database": "notification_sys_db", "username": "client_user", "password": "<replace_it_with_your_own>"
     }
