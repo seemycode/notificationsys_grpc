@@ -2,10 +2,11 @@ import 'dart:io' show File;
 
 import 'package:googleapis/fcm/v1.dart' as fcm;
 import 'package:googleapis_auth/auth_io.dart' as gauth;
-import 'package:notification_sys/src/utils.dart';
+import 'package:notification_sys/src/helper/utils.dart';
 
 mixin FCMIntegration {
-  dispatchFCMMessage(String recipient, String title, String message) async {
+  _dispatchSingleFCMMessage(
+      String recipient, String title, String message) async {
     // Push payload template
     final Map<dynamic, dynamic> json = {
       "token": recipient,
@@ -34,9 +35,15 @@ mixin FCMIntegration {
     try {
       await _executeFunctionWithContext(handler, 'firebase_sa_key_filename');
     } catch (e) {
-      //TODO: log on stackdriver
-      print('ERROR: ${e}');
+      Utils.log('ERROR: ${e}');
       throw e;
+    }
+  }
+
+  dispatchFCMMessage(
+      List<String> recipients, String title, String message) async {
+    for (var recipient in recipients) {
+      _dispatchSingleFCMMessage(recipient, title, message);
     }
   }
 

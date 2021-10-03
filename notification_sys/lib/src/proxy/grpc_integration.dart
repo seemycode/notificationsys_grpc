@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:grpc/grpc.dart';
 import 'package:notification_sys/src/generated/sm.pbgrpc.dart';
-import 'package:notification_sys/src/utils.dart';
+import 'package:notification_sys/src/helper/utils.dart';
 
 enum StubLocation { Local, Remote }
 
@@ -34,7 +34,7 @@ mixin GRPCIntegration {
           SimpleMessageClient(channel, options: credentials.toCallOptions);
       return stub;
     } else {
-      //TODO: log to stackdriver
+      Utils.log('ERROR: Invalid Stub Location');
       throw Exception('Invalid Stub Location');
     }
   }

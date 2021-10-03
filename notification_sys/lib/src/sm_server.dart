@@ -1,8 +1,9 @@
 import 'dart:async';
 
 import 'package:grpc/grpc.dart' as grpc;
-import 'package:notification_sys/src/db_integration.dart';
-import 'package:notification_sys/src/fcm_integration.dart';
+import 'package:notification_sys/src/helper/utils.dart';
+import 'package:notification_sys/src/proxy/db_integration.dart';
+import 'package:notification_sys/src/proxy/fcm_integration.dart';
 
 import 'package:notification_sys/src/generated/sm.pbgrpc.dart';
 
@@ -12,11 +13,11 @@ class SmService extends SimpleMessageServiceBase
   Future<StandardResponse> logDevice(
       grpc.ServiceCall call, Device request) async {
     // Default message
-    var status = "Added ${request.fcmid} with credential";
+    var status = 'Added ${request.fcmId} with credential';
 
     try {
       // Insert device to db
-      await insertDevice(request);
+      await upsertDevice(request);
     } catch (e) {
       status = e.toString();
     }
@@ -31,14 +32,14 @@ class SmService extends SimpleMessageServiceBase
   Future<StandardResponse> sendMessage(
       grpc.ServiceCall call, Message request) async {
     // Default message
-    var status = "Sent this message: ${request.message}";
+    var status = 'Sent this message: ${request.message}';
 
     try {
       // Send message
-      var recipient = "<<USERID>>";
-      var title = "Title";
-      var message = "Message";
-      await dispatchFCMMessage(recipient, title, message);
+      var recipients = request.recipients;
+      var title = request.message;
+      var message = request.message;
+      await dispatchFCMMessage(recipients, title, message);
     } catch (e) {
       status = e.toString();
     }
@@ -52,8 +53,18 @@ class SmService extends SimpleMessageServiceBase
   @override
   Future<StandardResponse> logOutDevice(
       grpc.ServiceCall call, Device request) async {
+    var status = 'Device logged out ${request.fcmId}';
+
+    try {
+      // Delete device
+      await deleteDevice(request);
+    } catch (e) {
+      status = e.toString();
+    }
+
+    // Send client response
     var response = StandardResponse();
-    response.status = "Device logged out ${request.fcmid}";
+    response.status = status;
     return response;
   }
 }
@@ -68,6 +79,6 @@ class SmServer {
       ),
     );
     await server.serve(port: 50050);
-    print('Server listening on port ${server.port}');
+    Utils.log('ERROR: Server listening on port ${server.port}');
   }
 }

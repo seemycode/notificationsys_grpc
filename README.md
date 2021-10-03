@@ -94,7 +94,7 @@ gcloud api-gateway gateways create grpc-notification-sys-gateway --api=notificat
 gcloud api-gateway describe grpc-notificationsys-gateway --location=us-east1 --project=<your_gcp_project>
 ```
 
-## Set an env.json file ##
+## Configuration file keys/env.json ##
 ```json
 {
     "gcp_project_name": "<replace_it_with_your_own>", 
@@ -106,4 +106,27 @@ gcloud api-gateway describe grpc-notificationsys-gateway --location=us-east1 --p
             "host": "localhost", "port": 5432, "database": "notification_sys_db", "username": "client_user", "password": "<replace_it_with_your_own>"
     }
 }
+```
+
+## Postgres Setup (Linux) ##
+**DBeaver**
+```sudo snap install dbeaver-ce```
+
+**Database**
+```bash
+sudo pacman -S postgresql
+sudo -iu postgres
+initdb --locale $LANG -E UTF8 -D '/var/lib/postgres/data/'
+exit
+sudo systemctl enable --now postgresql.service
+sudo su - postgres
+psql
+CREATE DATABASE notification_sys_db;
+CREATE USER client_user WITH PASSWORD '<<YOUR_PASSWD>>';
+ALTER ROLE client_user SET client_encoding TO 'utf8';
+ALTER ROLE client_user SET default_transaction_isolation TO 'read committed';
+ALTER ROLE client_user SET timezone TO 'UTC';
+GRANT ALL PRIVILEGES ON DATABASE notification_sys_db TO client_user;
+\q
+exit
 ```
