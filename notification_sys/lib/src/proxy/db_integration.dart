@@ -59,6 +59,31 @@ mixin DbIntegration {
     }
   }
 
+  Future<List<String>> lookUpFCMTokens(List<String> userIds) async {
+    // Handler that perform db change
+    final handler = (PostgreSQLConnection conn) async {
+      List<String> result = [];
+      await conn.transaction((connection) async {
+        // Get all recipient FCM tokens
+        for (var userId in userIds) {
+          PostgreSQLResult res = await connection.query(
+              "select fcm_token from client.user_device where user_id = @user_id",
+              substitutionValues: {'user_id': userId});
+          result.addAll(res.map((e) => e[0]));
+        }
+      });
+      return result;
+    };
+
+    // Execute under a context
+    try {
+      return await _executeFunctionWithContext(handler, DB_ENV);
+    } catch (e) {
+      Utils.log('ERROR: ${e}');
+      throw e;
+    }
+  }
+
   _executeFunctionWithContext(Function handler, String key) async {
     final envData = Utils.readEnvData();
     final connVars = envData[key];
@@ -73,7 +98,7 @@ mixin DbIntegration {
 
     try {
       await connection.open();
-      await handler(connection);
+      return await handler(connection);
     } finally {
       await connection.close();
     }

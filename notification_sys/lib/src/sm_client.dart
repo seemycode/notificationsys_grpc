@@ -16,18 +16,25 @@ class SmClient with GRPCIntegration, DbIntegration {
       // Get data
       // var data = getData(DbLocation.Mock);
 
-      // Log a device
+      // // Log a device
       var device1 = Device();
-      device1.userId = '0001';
-      device1.fcmId = '<<FCM_TOKEN>>';
-      // device1.platform = 'android';
+      device1.userId = '<<USER_ID>>';
+      device1.fcmId = '<<FCM_TOKEN_002>>';
+      device1.platform = 'android';
       var logDevice1Response = await stub.logDevice(device1);
       print(logDevice1Response);
 
+      var device2 = Device();
+      device2.userId = '<<USER_ID>>';
+      device2.fcmId = '<<FCM_TOKEN_002>>';
+      device2.platform = 'ios';
+      var logDevice2Response = await stub.logDevice(device2);
+      print(logDevice2Response);
+
       // Send simple message
-      var recipient = '<<FCM_TOKEN>>';
+      var userId = '<<USER_ID>>';
       var message = Message();
-      message.recipients.addAll([recipient]);
+      message.recipients.addAll([userId]);
       message.message = "Hi there!";
       var sendMessageResponse = await stub.sendMessage(message);
       print(sendMessageResponse);

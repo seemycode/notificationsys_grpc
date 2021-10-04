@@ -35,11 +35,14 @@ class SmService extends SimpleMessageServiceBase
     var status = 'Sent this message: ${request.message}';
 
     try {
-      // Send message
-      var recipients = request.recipients;
+      // Look up FCM tokens of each recipient
+      var fcmIds = await lookUpFCMTokens(request.recipients);
+      print('fcmIds: ${fcmIds}');
+
+      // Send message to all recipients
       var title = request.message;
       var message = request.message;
-      await dispatchFCMMessage(recipients, title, message);
+      await dispatchFCMMessage(fcmIds, title, message);
     } catch (e) {
       status = e.toString();
     }
@@ -79,6 +82,6 @@ class SmServer {
       ),
     );
     await server.serve(port: 50050);
-    Utils.log('ERROR: Server listening on port ${server.port}');
+    Utils.log('Server listening on port ${server.port}');
   }
 }

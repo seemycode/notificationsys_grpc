@@ -5,11 +5,10 @@ import 'package:googleapis_auth/auth_io.dart' as gauth;
 import 'package:notification_sys/src/helper/utils.dart';
 
 mixin FCMIntegration {
-  _dispatchSingleFCMMessage(
-      String recipient, String title, String message) async {
+  _dispatchSingleFCMMessage(String fcmId, String title, String message) async {
     // Push payload template
     final Map<dynamic, dynamic> json = {
-      "token": recipient,
+      "token": fcmId,
       "notification": fcm.Notification(title: title, body: message).toJson(),
       "data": {"title": title, "body": message},
       "android": {"priority": "high"},
@@ -40,10 +39,9 @@ mixin FCMIntegration {
     }
   }
 
-  dispatchFCMMessage(
-      List<String> recipients, String title, String message) async {
-    for (var recipient in recipients) {
-      _dispatchSingleFCMMessage(recipient, title, message);
+  dispatchFCMMessage(List<String> fcmIds, String title, String message) async {
+    for (var fcmId in fcmIds) {
+      _dispatchSingleFCMMessage(fcmId, title, message);
     }
   }
 
