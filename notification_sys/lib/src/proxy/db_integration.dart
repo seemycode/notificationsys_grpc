@@ -34,19 +34,19 @@ mixin DbIntegration {
     try {
       await _executeFunctionWithContext(handler, DB_ENV);
     } catch (e) {
-      Utils.log('ERROR: ${e}');
+      Utils.log('${e}');
       throw e;
     }
   }
 
-  deleteDevice(Device device) async {
+  deleteDevice(Token token) async {
     // Handler that perform db change
     final handler = (PostgreSQLConnection conn) async {
       await conn.transaction((connection) async {
         // Delete device
         await connection.query(
             "delete from client.user_device where fcm_token = @fcm_token",
-            substitutionValues: {'fcm_token': device.fcmId});
+            substitutionValues: {'fcm_token': token.fcmId});
       });
     };
 
@@ -54,8 +54,17 @@ mixin DbIntegration {
     try {
       await _executeFunctionWithContext(handler, DB_ENV);
     } catch (e) {
-      Utils.log('ERROR: ${e}');
+      Utils.log('${e}');
       throw e;
+    }
+  }
+
+  cleanUpFCMTokens(List<String> tokensToDelete) async {
+    // Clean up staled tokens in a list
+    for (var fcmId in tokensToDelete) {
+      print('Cleaning up token ${fcmId}');
+      var token = Token(fcmId: fcmId);
+      await deleteDevice(token);
     }
   }
 
@@ -79,7 +88,7 @@ mixin DbIntegration {
     try {
       return await _executeFunctionWithContext(handler, DB_ENV);
     } catch (e) {
-      Utils.log('ERROR: ${e}');
+      Utils.log('${e}');
       throw e;
     }
   }

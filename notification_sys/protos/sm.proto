@@ -7,7 +7,7 @@ package notification_sys;
 service SimpleMessage {
     rpc LogDevice(Device) returns (StandardResponse);
     rpc SendMessage(Message) returns (StandardResponse);
-    rpc LogOutDevice(Device) returns (StandardResponse);
+    rpc UnregisterDevice(Token) returns (StandardResponse);
 } 
 
 message Device {
@@ -30,4 +30,8 @@ message Recipient {
 message Message {
     repeated string recipients = 1;
     string message = 2;
+}
+
+message Token {
+    string fcmId = 1;
 }
