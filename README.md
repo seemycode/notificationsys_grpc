@@ -105,11 +105,15 @@ gcloud api-gateway describe grpc-notificationsys-gateway --location=us-east1 --p
 ```
 
 **Cloud SQL Postgres**
+
 *Remote DB*
+
 Follow https://cloud.google.com/sql/docs/postgres/connect-run
+
 Use a db-f1-micro instance with lower values at first to not increase cost initially. You can scale it up later.
 
 *Local DB (on Mac)*
+
 It is recommended using DBeaver Community edition as a tool to access either local and remote database. Here's the steps you can follow to get your local db up and running on Mac.
 ```bash
 brew install --cask dbeaver-community
@@ -140,6 +144,7 @@ grant all on all tables in schema <your_schema> to <your_db_role>;
 ```
 
 *Local DB (on Linux)*
+
 ```bash
 sudo pacman -S postgresql
 sudo snap install dbeaver-ce
@@ -160,13 +165,17 @@ exit
 ```
 
 *Database Loading*
+
 Run the script at [here](db/create.sql)
 
 **FCM**
+
 Add FCM generated json to keys/ folder. This can be downloaded when you set notifications up or at the settings of Firebase.
 
 **Env Vars**
+
 Fill variables at helper/utils.dart
+
 Example
 ```json
 {
@@ -187,4 +196,5 @@ Example
 ```
 
 **Env Var on GCP Secret Manager**
+
 Add the json above to a secret and name it /keys/notification_sys_secret
