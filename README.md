@@ -166,7 +166,7 @@ exit
 
 *Database Loading*
 
-Run the script at [here](db/create.sql)
+Run the script at [here](https://github.com/seemycode/notificationsys_grpc/blob/main/notification_sys/db/create.sql)
 
 **FCM**
 
