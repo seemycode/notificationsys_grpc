@@ -11,4 +11,5 @@ usage:
 backend:
   rules:
     - selector: "*"
-      address: <<cloud_run_url_without_https>> # Replace with your own value
+      address: <<gcp_project_name>> # Replace with your own value
+      

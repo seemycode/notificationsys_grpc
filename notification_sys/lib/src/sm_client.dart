@@ -1,5 +1,4 @@
 import 'package:grpc/grpc.dart';
-import 'package:notification_sys/src/helper/utils.dart';
 import 'package:notification_sys/src/proxy/db_integration.dart';
 import 'package:notification_sys/src/proxy/grpc_integration.dart';
 import 'package:notification_sys/src/generated/sm.pbgrpc.dart';
@@ -11,7 +10,7 @@ class SmClient with GRPCIntegration, DbIntegration {
   Future<void> main(List<String> args) async {
     try {
       // Get stub
-      var stub = getStub(StubLocation.Local);
+      var stub = getStub();
 
       // Get data
       // var data = getData(DbLocation.Mock);
@@ -47,7 +46,7 @@ class SmClient with GRPCIntegration, DbIntegration {
 
       //..
     } catch (e) {
-      Utils.log('ERROR on Client: ${e}');
+      print(e);
     } finally {
       await closeChannel();
     }

@@ -40,6 +40,12 @@ dart pub global activate protocol_plugin
 PATH="$PATH:$HOME/.pub-cache/bin/" on Mac
 PATH="$PATH:/home/<your_user>/.pub-cache/bin/" on Linux
 
+# Add googleapis
+cd /opt
+git clone https://github.com/googleapis/googleapis
+PATH="$PATH:/opt/googleapis/" on Linux
+OR export GOOGLEAPIS_DIR=/opt/googleapis on /home/<USER>/.bashrc
+
 # gcloud
 Download adn extract google-cloud-sdk at https://cloud.google.com/sdk/docs/quickstart
 Run ./google-cloud-sdk.install.sh
@@ -59,62 +65,84 @@ gcloud auth configure-docker
 
 ## Running ##
 **This generates classes for proto**
-```
-protoc --include_imports --include_source_info --proto_path protos/ --descriptor_set_out=lib/src/generated/api_descriptor.pb --dart_out=grpc:lib/src/generated protos/sm.proto google/protobuf/timestamp.proto
-```
-
-**This runs the server**
-```
-dart bin/sm_server.dart
+```bash
+protoc --include_imports --include_source_info --proto_path=${GOOGLEAPIS_DIR} --proto_path=protos/ --descriptor_set_out=lib/src/generated/api_descriptor.pb --dart_out=grpc:lib/src/generated protos/sm.proto google/protobuf/timestamp.proto
 ```
 
 **This runs a client example**
-```
+```bash
 dart bin/sm_client.dart
 ```
 
-## Deploying ##
+**This runs the server**
+```bash
+dart bin/sm_server.dart
 ```
+
+
+## Deploying ##
+**Docker**
+```bash
+open -a Docker # on Mac
 # First change api_config.yaml backend > address to CloudRun URL (replace https to grpc)
-docker build -t grc.io/<your_gcp_project>/grpc-notification-sys:v0.0.1 .```
+docker build -t grc.io/<your_gcp_project>/grpc-notification-sys:v0.0.1 .
 docker push gcr.io/<your_gcp_project>/grpc-notification-sys:v0.0.1
 ```
 
-## Cloud Run ##
-```
-gcloud run deploy --image gcr.io/<your_gcp_project>/grpc-notification-sys:v0.0.1 --memory 1Gi --port=50050 --use-http2 --allow-unauthenticated
+**Cloud Run**
+```bash
+gcloud run deploy --image gcr.io/<your_gcp_project>/grpc-notification-sys:v0.0.1 --memory 1Gi --port=50050 --use-http2 --allow-unauthenticated --add-cloudsql-instances=<instance:region:db_name>
+# Choose default name, us-central, allow unauthenticated invocations
 gcloud run services describe grpc-notification-sys
 ```
 
-## API Gateway ##
-```
+**API Gateway**
+```bash
 # Replace with your own values
 gcloud api-gateway api-configs create grpc-notification-sys-config --api=notification-sys --project=<your_gcp_project> --gr-files=lib/src/generated/api_descriptor.pb,protos/api_config.yaml
 gcloud api-gateway gateways create grpc-notification-sys-gateway --api=notification-sys-config --location=us-east1 --project=<your_gcp_project>
 gcloud api-gateway describe grpc-notificationsys-gateway --location=us-east1 --project=<your_gcp_project>
 ```
 
-## Configuration file keys/env.json ##
-```json
-{
-    "gcp_project_name": "<replace_it_with_your_own>", 
-    "gcp_sa_key_filename": "<replace_it_with_your_own>",
-    "cloud_run_url_without_https": "<replace_it_with_your_own>", 
-    "firebase_sa_key_filename": "<replace_it_with_your_own>",
-    "firebase_project_name": "<replace_it_with_your_own>", 
-    "local_postgres_connection_json": {
-            "host": "localhost", "port": 5432, "database": "notification_sys_db", "username": "client_user", "password": "<replace_it_with_your_own>"
-    }
-}
+**Cloud SQL Postgres**
+*Remote DB*
+Follow https://cloud.google.com/sql/docs/postgres/connect-run
+Use a db-f1-micro instance with lower values at first to not increase cost initially. You can scale it up later.
+
+*Local DB (on Mac)*
+It is recommended using DBeaver Community edition as a tool to access either local and remote database. Here's the steps you can follow to get your local db up and running on Mac.
+```bash
+brew install --cask dbeaver-community
+brew install postgresql
+brew services start postgresql
+initdb /user/local/va/postgres -E utf8
+
+# from now on you can use dbeaver gui instead of next commands
+psql postgres
+
+# put a passwd for postgres and save it elsewhere
+\password postgres
+
+create database <db_name>;
+
+# create a diff database user
+create user <your_db_role> with password '<your_passwd>';
+
+alter role <your_db_role> set client_encoding to 'utf-8'; 
+alter role <your_db_role> set default transaction_isolation to 'read committed';
+alter role <your_db_role> set set timezone to 'utc';
+grant all privileges on database <db_name> to <your_db_role>;
+grant execute on all functions in schema <your_schema> to <your_db_role>;
+grant usage on schema <your_schema> to <your_db_role>;
+grant all on all tables in schema <your_schema> to <your_db_role>;
+
+\q
 ```
 
-## Postgres Setup (Linux) ##
-**DBeaver**
-```sudo snap install dbeaver-ce```
-
-**Database**
+*Local DB (on Linux)*
 ```bash
 sudo pacman -S postgresql
+sudo snap install dbeaver-ce
 sudo -iu postgres
 initdb --locale $LANG -E UTF8 -D '/var/lib/postgres/data/'
 exit
@@ -130,3 +158,33 @@ GRANT ALL PRIVILEGES ON DATABASE notification_sys_db TO client_user;
 \q
 exit
 ```
+
+*Database Loading*
+Run the script at [here](db/create.sql)
+
+**FCM**
+Add FCM generated json to keys/ folder. This can be downloaded when you set notifications up or at the settings of Firebase.
+
+**Env Vars**
+Fill variables at helper/utils.dart
+Example
+```json
+{
+    "database_location": "LOCAL",
+    "endpoint_location": " LOCAL",    
+    "gcp_project_name": "grpc-notification-sys-asdsadadsa-ue.a.run.app",
+    "gcp_sa_key_filename": "keys/my-project-asfsadsada.json",
+    "cloud_run_url_without_https": "grpcs://grpc-notification-sys-asdsadadsa-ue.a.run.app",
+    "firebase_sa_key_filename": "keys/my-fcm-project-abcde-firebase-adminsdk-abcde-asdasdasdsa.json",
+    "firebase_project_name": "projects/notificationsys-abcde",
+    "local_postgres_connection_json": {
+        "host": "localhost", "port": 5432, "database": "<db_name>", "username": "<your_db_role>", "password": "<your_db_role_local_passwd>"
+    },
+    "remote_postgres_connection_json": {
+        "host": "<cloud_sql_public_ip>", "port": 5432, "database": "<db_name>", "username": "<your_db_role>", "password": "<your_db_role_local_passwd>"
+    }    
+}
+```
+
+**Env Var on GCP Secret Manager**
+Add the json above to a secret and name it /keys/notification_sys_secret

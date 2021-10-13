@@ -1,14 +1,14 @@
 syntax = "proto3";
 
-import 'google/protobuf/timestamp.proto';
+import "google/protobuf/timestamp.proto";
 
 package notification_sys;
 
 service SimpleMessage {
-    rpc LogDevice(Device) returns (StandardResponse);
+    rpc LogDevice(Device) returns (StandardResponse) ;
     rpc SendMessage(Message) returns (StandardResponse);
     rpc UnregisterDevice(Token) returns (StandardResponse);
-} 
+}
 
 message Device {
     string userId = 1;
@@ -29,7 +29,8 @@ message Recipient {
 
 message Message {
     repeated string recipients = 1;
-    string message = 2;
+    string title = 2;
+    string message = 3;
 }
 
 message Token {

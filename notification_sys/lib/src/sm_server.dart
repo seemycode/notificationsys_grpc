@@ -17,7 +17,7 @@ class SmService extends SimpleMessageServiceBase
         'Added or updated \x1B[36m${request.userId}\x1B[0m with \x1B[36m${request.fcmId}\x1B[0m  successfully';
 
     try {
-      // Insert device to db
+      // Update or insert device to db
       await upsertDevice(request);
     } catch (e) {
       status = e.toString();

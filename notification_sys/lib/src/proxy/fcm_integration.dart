@@ -6,9 +6,10 @@ import 'package:googleapis_auth/auth_io.dart' as gauth;
 import 'package:notification_sys/src/helper/utils.dart';
 
 mixin FCMIntegration {
-  _executeFunctionWithContext(Function handler, String key) async {
+  _executeFunctionWithContext(Function handler) async {
     final envData = Utils.readEnvData();
-    final saKeyJson = File(envData[key]).readAsStringSync();
+    final saKeyJson =
+        File(envData[Utils.FCM_SA_KEY_FILENAME]).readAsStringSync();
     final saCredentials = gauth.ServiceAccountCredentials.fromJson(saKeyJson);
     final scopes = [fcm.FirebaseCloudMessagingApi.firebaseMessagingScope];
 
@@ -42,11 +43,11 @@ mixin FCMIntegration {
       var sendMessageRequest = fcm.SendMessageRequest(message: message);
       var instance = fcm.FirebaseCloudMessagingApi(cli);
       await instance.projects.messages
-          .send(sendMessageRequest, envData['firebase_project_name']);
+          .send(sendMessageRequest, envData[Utils.FCM_PROJECT_NAME]);
     };
 
     // Execute under a context
-    await _executeFunctionWithContext(handler, 'firebase_sa_key_filename');
+    await _executeFunctionWithContext(handler);
   }
 
   Future<List<InvalidFCMToken>> dispatchFCMMessage(

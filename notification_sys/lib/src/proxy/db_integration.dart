@@ -1,15 +1,12 @@
+import 'package:postgres/postgres.dart';
 import 'package:notification_sys/src/generated/sm.pb.dart';
 import 'package:notification_sys/src/helper/utils.dart';
-import 'package:postgres/postgres.dart';
-
-const String DB_ENV = 'local_postgres_connection_json'; // Local
-// const String DB_ENV = 'remote_postgres_connection_json'; // Remote
 
 mixin DbIntegration {
   upsertDevice(Device device) async {
     // Handler that perform db change
-    final handler = (PostgreSQLConnection conn) async {
-      await conn.transaction((connection) async {
+    final handler = (PostgreSQLConnection connection) async {
+      await connection.transaction((connection) async {
         // Check device existance
         var result = await connection.query(
             "select count(*) from client.user_device where fcm_token = @fcm_token",
@@ -32,17 +29,17 @@ mixin DbIntegration {
 
     // Execute under a context
     try {
-      await _executeFunctionWithContext(handler, DB_ENV);
+      await _executeFunctionWithContext(handler);
     } catch (e) {
-      Utils.log('${e}');
+      Utils.log(e);
       throw e;
     }
   }
 
   deleteDevice(Token token) async {
-    // Handler that perform db change
-    final handler = (PostgreSQLConnection conn) async {
-      await conn.transaction((connection) async {
+    // Handler that performs db change
+    final handler = (PostgreSQLConnection connection) async {
+      await connection.transaction((connection) async {
         // Delete device
         await connection.query(
             "delete from client.user_device where fcm_token = @fcm_token",
@@ -52,9 +49,9 @@ mixin DbIntegration {
 
     // Execute under a context
     try {
-      await _executeFunctionWithContext(handler, DB_ENV);
+      await _executeFunctionWithContext(handler);
     } catch (e) {
-      Utils.log('${e}');
+      Utils.log(e);
       throw e;
     }
   }
@@ -86,16 +83,16 @@ mixin DbIntegration {
 
     // Execute under a context
     try {
-      return await _executeFunctionWithContext(handler, DB_ENV);
+      return await _executeFunctionWithContext(handler);
     } catch (e) {
-      Utils.log('${e}');
+      Utils.log(e);
       throw e;
     }
   }
 
-  _executeFunctionWithContext(Function handler, String key) async {
+  _executeFunctionWithContext(Function handler) async {
     final envData = Utils.readEnvData();
-    final connVars = envData[key];
+    final connVars = envData[Utils.DB_PARAMS];
 
     var connection = PostgreSQLConnection(
       connVars['host'].toString(),
@@ -112,18 +109,4 @@ mixin DbIntegration {
       await connection.close();
     }
   }
-}
-
-class UserDevice {
-  UserDevice(
-      {required this.id,
-      required this.UserId,
-      required this.fcmToken,
-      required this.platform,
-      required this.updatedAt});
-  int id;
-  String UserId;
-  String fcmToken;
-  String platform;
-  String updatedAt;
 }

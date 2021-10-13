@@ -4,13 +4,11 @@ import 'package:grpc/grpc.dart';
 import 'package:notification_sys/src/generated/sm.pbgrpc.dart';
 import 'package:notification_sys/src/helper/utils.dart';
 
-enum StubLocation { Local, Remote }
-
 mixin GRPCIntegration {
   late final ClientChannel channel;
 
-  SimpleMessageClient getStub(StubLocation stubLocation) {
-    if (stubLocation == StubLocation.Local) {
+  SimpleMessageClient getStub() {
+    if (Utils.GCP_SERVER_LOCATION_FOR_CLIENT == 'LOCAL') {
       /// Local
       channel = ClientChannel(
         'localhost',
@@ -21,21 +19,21 @@ mixin GRPCIntegration {
       final stub = SimpleMessageClient(channel,
           options: CallOptions(timeout: Duration(seconds: 30)));
       return stub;
-    } else if (stubLocation == StubLocation.Remote) {
+    } else if (Utils.GCP_SERVER_LOCATION_FOR_CLIENT == 'REMOTE') {
       /// Remote
       /// Using the same server service account for simplicity)
       /// Check https://pub.dev/packages/googleapis_auth for better options
       final envData = Utils.readEnvData();
-      channel = ClientChannel(envData['gcp_project_name']);
+      channel = ClientChannel(envData[Utils.GCP_PROJECT_NAME]);
       final serviceAccountJson =
-          File(envData['gcp_sa_key_filename']).readAsStringSync();
+          File(envData[Utils.GCP_SA_KEY_FILENAME]).readAsStringSync();
       final credentials = JwtServiceAccountAuthenticator(serviceAccountJson);
       final stub =
           SimpleMessageClient(channel, options: credentials.toCallOptions);
       return stub;
     } else {
-      Utils.log('ERROR: Invalid Stub Location');
-      throw Exception('Invalid Stub Location');
+      Utils.log('Invalid DB_PARAMS');
+      throw Exception('Invalid DB_PARAMS');
     }
   }
 
