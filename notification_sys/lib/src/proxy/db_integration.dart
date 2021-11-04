@@ -1,3 +1,5 @@
+import 'package:googleapis/datamigration/v1.dart';
+import 'package:googleapis/networkmanagement/v1.dart';
 import 'package:postgres/postgres.dart';
 import 'package:notification_sys/src/generated/sm.pb.dart';
 import 'package:notification_sys/src/helper/utils.dart';
@@ -9,14 +11,23 @@ mixin DbIntegration {
       await connection.transaction((connection) async {
         // Check device existance
         var result = await connection.query(
-            "select count(*) from client.user_device where fcm_token = @fcm_token",
+            "select count(*) from client_schema.user_device where fcm_token = @fcm_token",
             substitutionValues: {'fcm_token': device.fcmId});
 
-        // Add or ignore device received
+        // Add or update device received
         if (result.last[0] == 0) {
           await connection.query(
-            " insert into client.user_device (user_id, fcm_token, platform) " +
+            " insert into client_schema.user_device (user_id, fcm_token, platform) " +
                 " values (@user_id, @fcm_token, @platform) ",
+            substitutionValues: {
+              'user_id': device.userId,
+              'fcm_token': device.fcmId,
+              'platform': device.platform
+            },
+          );
+        } else {
+          await connection.query(
+            " update client_schema.user_device set user_id = @user_id, platform = @platform where fcm_token = @fcm_token ",
             substitutionValues: {
               'user_id': device.userId,
               'fcm_token': device.fcmId,
@@ -42,7 +53,7 @@ mixin DbIntegration {
       await connection.transaction((connection) async {
         // Delete device
         await connection.query(
-            "delete from client.user_device where fcm_token = @fcm_token",
+            "delete from client_schema.user_device where fcm_token = @fcm_token",
             substitutionValues: {'fcm_token': token.fcmId});
       });
     };
@@ -73,7 +84,7 @@ mixin DbIntegration {
         // Get all recipient FCM tokens
         for (var userId in userIds) {
           PostgreSQLResult res = await connection.query(
-              "select fcm_token from client.user_device where user_id = @user_id",
+              "select fcm_token from client_schema.user_device where user_id = @user_id",
               substitutionValues: {'user_id': userId});
           result.addAll(res.map((e) => e[0]));
         }
@@ -95,11 +106,13 @@ mixin DbIntegration {
     final connVars = envData[Utils.DB_PARAMS];
 
     var connection = PostgreSQLConnection(
+      // "/cloudsql/notification-grpc:southamerica-east1:notification-grpc-db-instance",
       connVars['host'].toString(),
       int.parse(connVars['port'].toString()),
       connVars['database'].toString(),
       username: connVars['username'].toString(),
       password: connVars['password'].toString(),
+      // isUnixSocket: true,
     );
 
     try {

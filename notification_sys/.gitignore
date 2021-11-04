@@ -10,3 +10,4 @@ pubspec.lock
 *.js.map
 keys/
 lib/src/generated/
+cloud_sql_proxy.linux.amd64

@@ -2,32 +2,46 @@ import 'dart:io' show File;
 import 'dart:convert' show json;
 
 class Utils {
-  /// Database
-  static const String DB_PARAMS = 'local_postgres_connection_json'; // Local
-  // static const String DB_PARAMS = 'remote_postgres_connection_json'; // Remote
+  /// Database >> DB_PARAMS:
+  ///   local_postgres_connection_json: connect to localhost
+  ///   remote_postgres_connection_json: connect to public ip (insecure)
+  static const String DB_PARAMS = 'remote_postgres_connection_json';
+
+  /// FCM >> FCM_SA_KEY_FILENAME:
+  ///   fcm_sa_key_filename_local: uses local sa file downloaded
+  ///   fcm_sa_key_filename_remote: uses gcp file uploaded to a secret
+  static const FCM_SA_KEY_FILENAME = 'fcm_sa_key_filename_remote';
 
   /// FCM
   static const FCM_PROJECT_NAME = 'fcm_project_name';
-  static const FCM_SA_KEY_FILENAME = 'fcm_sa_key_filename_local'; // Local
-  // static const FCM_SA_KEY_FILENAME = 'fcm_sa_key_filename_remote'; // Remote
 
   /// GCP
-  static const String GCP_ENV_VAR_LOCATION =
-      'LOCAL'; // change to REMOTE when deplpying
-  static const String GCP_SERVER_LOCATION_FOR_CLIENT = 'LOCAL';
   static const String GCP_PROJECT_NAME = 'gcp_project_name';
-  static const String GCP_SA_KEY_FILENAME = 'gcp_sa_key_filename';
 
-  /// Logger
-  static const String LOGGER_LOCATION =
-      'LOCAL'; // change to REMOTE when deploying
+  /// GCP >> GCP_SERVER_LOCATION_FOR_CLIENT
+  ///   LOCAL: client calls to local or container
+  ///   REMOTE: client calls to gcp
+  static const String GCP_SERVER_LOCATION_FOR_CLIENT = 'LOCAL';
+
+  /// GCP >> indicates the sa json file to authenticate to the remote server from client app
+  static const String GCP_SA_FILE_FOR_CLIENT = 'gcp_sa_key_filename';
+
+  /// GCP >> GCP_ENV_VAR_LOCATION
+  ///   LOCAL: server reads vars from local file env.json (WHEN DEBUGGING)
+  ///   REMOTE: server reads vars from mounted point (WHEN DEPLOYING OR CONTAINER)
+  static const String GCP_ENV_VAR_LOCATION = 'REMOTE';
+
+  /// Logger >> LOGGER_LOCATION
+  ///   LOCAL: print on local console
+  ///   REMOTE: print on stackdriver
+  static const String LOGGER_LOCATION = 'REMOTE';
 
   static Map readEnvData() {
     late String envJson;
     if (Utils.GCP_ENV_VAR_LOCATION == 'LOCAL') {
       envJson = File('keys/env.json').readAsStringSync();
     } else if (Utils.GCP_ENV_VAR_LOCATION == 'REMOTE') {
-      envJson = File('/keys/notification_sys_secret').readAsStringSync();
+      envJson = File('/keys/notification_grpc_secret').readAsStringSync();
     }
     var map = json.decode(envJson) as Map;
     return map;

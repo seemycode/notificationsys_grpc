@@ -1,0 +1,14 @@
+type: google.api.Service
+config_version: 3
+name: <CLOUD_RUN_SERVICE_URL> # Replace with your own value
+http:
+  rules:
+  - selector: notificationsys.SimpleMessage.LogDevice
+    post: /v1/logdevice
+    body: '*'
+  - selector: notificationsys.SimpleMessage.SendMessage
+    post: /v1/sendmessage
+    body: '*'
+  - selector: notificationsys.SimpleMessage.UnregisterDevice
+    post: /v1/unregisterdevice
+    body: '*'

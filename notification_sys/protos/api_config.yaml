@@ -1,15 +1,14 @@
 type: google.api.Service
 config_version: 3
-name: Notification System
+name: <CLOUD_RUN_SERVICE_URL> # Replace with your own value
 title: Notification System
 apis:
-  - name: notification_sys.SimpleMessage
+  - name: notificationsys.SimpleMessage
 usage:
   rules:
   - selector: "*"
-    allow_unregistered_calls: false
+    allow_unregistered_calls: true
 backend:
   rules:
     - selector: "*"
-      address: <<gcp_project_name>> # Replace with your own value
-      
+      address: grpcs://<CLOUD_RUN_BACKEND_URL> # Replace with your own value      

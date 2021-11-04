@@ -26,14 +26,39 @@ mixin FCMIntegration {
     final Map<dynamic, dynamic> json = {
       "token": fcmId,
       "notification": fcm.Notification(title: title, body: message).toJson(),
-      "data": {"title": title, "body": message},
-      "android": {"priority": "high"},
-      "apns": {
-        "payload": {
-          "aps": {"contentAvailable": true}
+      "data": {
+        "title": title,
+        "body": message,
+        "key_ids": jsonEncode(["SOME_KEY"]),
+        "values_ids": jsonEncode(["SOME_VALUE"]),
+      },
+      "android": {
+        "ttl": "604800s", // a week
+        "priority": "high",
+        "notification": {
+          "icon": "stock_ticker_update", //TODO: replace with your own icon
+          "color": "#ff55ff",
+          "click_action": "SOME_ACTIVITY", //TODO: may use to android route
         }
       },
-      "content-available": "true"
+      "apns": {
+        "headers": {
+          "apns-priority": "5",
+          "apns-expiration": "604800",
+        },
+        "payload": {
+          "aps": {
+            "contentAvailable": true,
+            "category": "SOME_CATEGORY", // TODO: it can be used to ios route
+          }
+        }
+      },
+      "webpush": {
+        "headers": {
+          "TTL": "604800",
+          "Urgency": "high",
+        }
+      }
     };
 
     // Handler to run under a context

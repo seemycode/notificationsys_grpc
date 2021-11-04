@@ -26,7 +26,7 @@ mixin GRPCIntegration {
       final envData = Utils.readEnvData();
       channel = ClientChannel(envData[Utils.GCP_PROJECT_NAME]);
       final serviceAccountJson =
-          File(envData[Utils.GCP_SA_KEY_FILENAME]).readAsStringSync();
+          File(envData[Utils.GCP_SA_FILE_FOR_CLIENT]).readAsStringSync();
       final credentials = JwtServiceAccountAuthenticator(serviceAccountJson);
       final stub =
           SimpleMessageClient(channel, options: credentials.toCallOptions);
