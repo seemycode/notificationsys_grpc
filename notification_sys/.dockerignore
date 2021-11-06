@@ -6,3 +6,4 @@ build/
 .github/
 .gitignore
 .packages
+gcloud_build_image

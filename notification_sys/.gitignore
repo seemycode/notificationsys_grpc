@@ -11,3 +11,4 @@ pubspec.lock
 keys/
 lib/src/generated/
 cloud_sql_proxy.linux.amd64
+gcloud_build_image

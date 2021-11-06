@@ -19,17 +19,17 @@ class Utils {
   static const String GCP_PROJECT_NAME = 'gcp_project_name';
 
   /// GCP >> GCP_SERVER_LOCATION_FOR_CLIENT
-  ///   LOCAL: client calls to local or container
-  ///   REMOTE: client calls to gcp
-  static const String GCP_SERVER_LOCATION_FOR_CLIENT = 'LOCAL';
+  ///   LOCAL: grpc without sa
+  ///   REMOTE: grpc with sa
+  static const String GCP_SERVER_LOCATION_FOR_CLIENT = 'REMOTE';
 
   /// GCP >> indicates the sa json file to authenticate to the remote server from client app
   static const String GCP_SA_FILE_FOR_CLIENT = 'gcp_sa_key_filename';
 
-  /// GCP >> GCP_ENV_VAR_LOCATION
-  ///   LOCAL: server reads vars from local file env.json (WHEN DEBUGGING)
-  ///   REMOTE: server reads vars from mounted point (WHEN DEPLOYING OR CONTAINER)
-  static const String GCP_ENV_VAR_LOCATION = 'REMOTE';
+  /// GCP >> where to read parameters from
+  ///   LOCAL: local file env.json
+  ///   CLOUD: mounted point
+  static const String GCP_ENV_VAR_LOCATION = 'LOCAL';
 
   /// Logger >> LOGGER_LOCATION
   ///   LOCAL: print on local console

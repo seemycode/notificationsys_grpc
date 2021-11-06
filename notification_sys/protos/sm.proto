@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
-package notification_sys;
+package notificationsys;
 
 service SimpleMessage {
     rpc LogDevice(Device) returns (StandardResponse) ;
