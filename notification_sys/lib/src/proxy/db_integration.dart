@@ -1,5 +1,3 @@
-import 'package:googleapis/datamigration/v1.dart';
-import 'package:googleapis/networkmanagement/v1.dart';
 import 'package:postgres/postgres.dart';
 import 'package:notification_sys/src/generated/sm.pb.dart';
 import 'package:notification_sys/src/helper/utils.dart';
@@ -67,12 +65,31 @@ mixin DbIntegration {
     }
   }
 
-  cleanUpFCMTokens(List<String> tokensToDelete) async {
+  cleanUpInvalidTokens(List<String> tokensToDelete) async {
     // Clean up staled tokens in a list
     for (var fcmId in tokensToDelete) {
       print('Cleaning up token ${fcmId}');
       var token = Token(fcmId: fcmId);
       await deleteDevice(token);
+    }
+  }
+
+  cleanUpFCMTokens() async {
+    // Handler that performs db change
+    final handler = (PostgreSQLConnection connection) async {
+      await connection.transaction((connection) async {
+        // Delete device
+        await connection.query(
+            "delete from client_schema.user_device where updated_at < now() - interval '60 days'");
+      });
+    };
+
+    // Execute under a context
+    try {
+      await _executeFunctionWithContext(handler);
+    } catch (e) {
+      Utils.log(e);
+      throw e;
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:grpc/grpc.dart';
+import 'package:notification_sys/src/generated/google/protobuf/empty.pb.dart';
 import 'package:notification_sys/src/proxy/db_integration.dart';
 import 'package:notification_sys/src/proxy/grpc_integration.dart';
 import 'package:notification_sys/src/generated/sm.pbgrpc.dart';
@@ -17,21 +18,14 @@ class SmClient with GRPCIntegration, DbIntegration {
 
       // Log a device
       var device1 = Device();
-      device1.userId = '<<USER_ID>>';
-      device1.fcmId = '<<FCM_TOKEN_001>>';
+      device1.userId = '<USER_ID>';
+      device1.fcmId = '<FCM_TOKEN>';
       device1.platform = 'android';
       var logDevice1Response = await stub.logDevice(device1);
       print(logDevice1Response);
 
-      var device2 = Device();
-      device2.userId = '<<USER_ID>>';
-      device2.fcmId = '<<FCM_TOKEN_002>>';
-      device2.platform = 'ios';
-      var logDevice2Response = await stub.logDevice(device2);
-      print(logDevice2Response);
-
       // Send simple message
-      var userId = '<<USER_ID>>';
+      var userId = '<USER_ID>';
       var message = Message();
       message.recipients.addAll([userId]);
       message.message = "Lorem ipsum dolor sit amet, ei hinc verear vel.";
@@ -40,9 +34,14 @@ class SmClient with GRPCIntegration, DbIntegration {
 
       // Log out device
       var token = Token();
-      token.fcmId = '<<FCM_TOKEN_002>>';
+      token.fcmId = '<FCM_TOKEN>';
       var logOutDeviceResponse = await stub.unregisterDevice(token);
       print(logOutDeviceResponse);
+
+      // Clean up staled FCM tokens
+      var cleanUpStaledRecordsResponse =
+          await stub.cleanUpStaledRecords(Empty());
+      print(cleanUpStaledRecordsResponse);
 
       //..
     } catch (e) {

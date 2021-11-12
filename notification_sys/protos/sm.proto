@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
 
 package notificationsys;
 
@@ -8,6 +9,7 @@ service SimpleMessage {
     rpc LogDevice(Device) returns (StandardResponse) ;
     rpc SendMessage(Message) returns (StandardResponse);
     rpc UnregisterDevice(Token) returns (StandardResponse);
+    rpc CleanUpStaledRecords(google.protobuf.Empty) returns (StandardResponse);
 }
 
 message Device {

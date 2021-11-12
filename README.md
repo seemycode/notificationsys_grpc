@@ -34,7 +34,7 @@ brew install protobuf
 protoc --version
 
 # Activating proto to Dart
-dart pub global activate protocol_plugin
+dart pub global activate protoc_plugin
 
 # Add it to Path
 PATH="$PATH:$HOME/.pub-cache/bin/" on Mac

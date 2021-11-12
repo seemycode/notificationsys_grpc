@@ -29,7 +29,7 @@ class Utils {
   /// GCP >> where to read parameters from
   ///   LOCAL: local file env.json
   ///   CLOUD: mounted point
-  static const String GCP_ENV_VAR_LOCATION = 'LOCAL';
+  static const String GCP_ENV_VAR_LOCATION = 'REMOTE';
 
   /// Logger >> LOGGER_LOCATION
   ///   LOCAL: print on local console

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:grpc/grpc.dart' as grpc;
+import 'package:notification_sys/src/generated/google/protobuf/empty.pb.dart';
 import 'package:notification_sys/src/proxy/db_integration.dart';
 import 'package:notification_sys/src/proxy/fcm_integration.dart';
 
@@ -58,7 +59,7 @@ class SmService extends SimpleMessageServiceBase
     // Delete invalid tokens
     if (tokensToDelete.length > 0) {
       var listOfTokens = tokensToDelete.map((e) => e.fcmId).toList();
-      await cleanUpFCMTokens(listOfTokens);
+      await cleanUpInvalidTokens(listOfTokens);
       status +=
           ' However, some invalid tokens were excluded from sending and wiped from db: ${jsonEncode(tokensToDelete)}';
     }
@@ -78,6 +79,24 @@ class SmService extends SimpleMessageServiceBase
     try {
       // Delete device
       await deleteDevice(request);
+    } catch (e) {
+      status = e.toString();
+    }
+
+    // Send client response
+    var response = StandardResponse();
+    response.status = status;
+    return response;
+  }
+
+  @override
+  Future<StandardResponse> cleanUpStaledRecords(
+      grpc.ServiceCall call, Empty request) async {
+    var status = 'Staled FCM tokens has been cleaned up';
+
+    try {
+      // Delete devices
+      await cleanUpFCMTokens();
     } catch (e) {
       status = e.toString();
     }
