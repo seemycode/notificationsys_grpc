@@ -1,9 +1,11 @@
+import 'package:notification_sys/src/generated/google/protobuf/timestamp.pb.dart'
+    as ts;
 import 'package:postgres/postgres.dart';
 import 'package:notification_sys/src/generated/sm.pb.dart';
 import 'package:notification_sys/src/helper/utils.dart';
 
 mixin DbIntegration {
-  upsertDevice(Device device) async {
+  Future<void> upsertDevice(Device device) async {
     // Handler that perform db change
     final handler = (PostgreSQLConnection connection) async {
       await connection.transaction((connection) async {
@@ -45,7 +47,7 @@ mixin DbIntegration {
     }
   }
 
-  deleteDevice(Token token) async {
+  Future<void> deleteDevice(Token token) async {
     // Handler that performs db change
     final handler = (PostgreSQLConnection connection) async {
       await connection.transaction((connection) async {
@@ -65,7 +67,7 @@ mixin DbIntegration {
     }
   }
 
-  cleanUpInvalidTokens(List<String> tokensToDelete) async {
+  Future<void> cleanUpInvalidTokens(List<String> tokensToDelete) async {
     // Clean up staled tokens in a list
     for (var fcmId in tokensToDelete) {
       print('Cleaning up token ${fcmId}');
@@ -74,7 +76,7 @@ mixin DbIntegration {
     }
   }
 
-  cleanUpFCMTokens() async {
+  Future<void> cleanUpFCMTokens() async {
     // Handler that performs db change
     final handler = (PostgreSQLConnection connection) async {
       await connection.transaction((connection) async {
@@ -112,6 +114,141 @@ mixin DbIntegration {
     // Execute under a context
     try {
       return await _executeFunctionWithContext(handler);
+    } catch (e) {
+      Utils.log(e);
+      throw e;
+    }
+  }
+
+  // ===============================
+  Future<Notifications> getAllNotificationFromSingleUser(UserId userId) async {
+    // Handler that perform db change
+    final handler = (PostgreSQLConnection conn) async {
+      var notifications = Notifications();
+      await conn.transaction(
+        (connection) async {
+          PostgreSQLResult res = await connection.query(
+              " select id, title, message, sender_id, recipient_id, created_at, is_read, read_at from client_schema.notification where recipient_id = @user_id ",
+              substitutionValues: {'user_id': userId.id});
+          notifications.items.addAll(res.map((e) => NotificationItem(
+                id: int.parse(e[0].toString()),
+                title: e[1],
+                message: e[2],
+                senderId: e[3],
+                recipientId: e[4],
+                createdAt: ts.Timestamp.fromDateTime(e[5]),
+                isRead: bool.fromEnvironment(e[6].toString().toLowerCase(),
+                    defaultValue: false),
+                readAt: e[7] != null ? ts.Timestamp.fromDateTime(e[7]) : null,
+              )));
+        },
+      );
+      return notifications;
+    };
+
+    // Execute under a context
+    try {
+      return await _executeFunctionWithContext(handler);
+    } catch (e) {
+      Utils.log(e);
+      throw e;
+    }
+  }
+
+  Future<void> markSingleNotificationAsRead(
+      NotificationId notificationId) async {
+    // Handler that performs db change
+    final handler = (PostgreSQLConnection connection) async {
+      await connection.transaction((connection) async {
+        // Mark as read
+        await connection.query(
+            " update client_schema.notification set is_read = true where id = @id ",
+            substitutionValues: {'id': notificationId.id});
+      });
+    };
+
+    // Execute under a context
+    try {
+      await _executeFunctionWithContext(handler);
+    } catch (e) {
+      Utils.log(e);
+      throw e;
+    }
+  }
+
+  Future<UnreadNotification> countUnreadNotificationOfAUser(
+      UserId userId) async {
+    // Handler that performs db change
+    final handler = (PostgreSQLConnection conn) async {
+      var count = UnreadNotification();
+      await conn.transaction(
+        (connection) async {
+          PostgreSQLResult res = await connection.query(
+              " select count(id) as count from client_schema.notification where recipient_id = @recipient_id and is_read = false ",
+              substitutionValues: {'recipient_id': userId.id});
+          try {
+            print(res[0].first);
+            count.count = int.parse(res[0].first.toString());
+          } on Exception catch (_) {
+            count.count = 0;
+          }
+        },
+      );
+      return count;
+    };
+
+    // Execute under a context
+    try {
+      return await _executeFunctionWithContext(handler);
+    } catch (e) {
+      Utils.log(e);
+      throw e;
+    }
+  }
+
+  Future<void> deleteSingleNotification(NotificationId notificationId) async {
+    // Handler that performs db change
+    final handler = (PostgreSQLConnection connection) async {
+      await connection.transaction((connection) async {
+        // Delete device
+        await connection.query(
+            " delete from client_schema.notification where id = @id ",
+            substitutionValues: {'id': notificationId.id});
+      });
+    };
+
+    // Execute under a context
+    try {
+      await _executeFunctionWithContext(handler);
+    } catch (e) {
+      Utils.log(e);
+      throw e;
+    }
+  }
+
+  Future<void> createNotification(Message message) async {
+    // Handler that perform db change
+    final handler = (PostgreSQLConnection connection) async {
+      await connection.transaction((connection) async {
+        // Add or update device received
+        for (var recipient in message.recipients) {
+          await connection.query(
+            " insert into client_schema.notification (title, message, sender_id, recipient_id, created_at, is_read) " +
+                " values (@title, @message, @sender_id, @recipient_id, now(), false) ",
+            substitutionValues: {
+              'title': message.title,
+              'message': message.message,
+              'sender_id': message.senderId,
+              'recipient_id': recipient
+            },
+          );
+        }
+      });
+    };
+
+    // Execute under a context
+    try {
+      await _executeFunctionWithContext(handler);
     } catch (e) {
       Utils.log(e);
       throw e;

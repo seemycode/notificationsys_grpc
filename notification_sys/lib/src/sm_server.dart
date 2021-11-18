@@ -51,6 +51,9 @@ class SmService extends SimpleMessageServiceBase
         var title = request.message;
         var message = request.message;
         tokensToDelete = await dispatchFCMMessage(fcmIds, title, message);
+
+        // Record every each message as one notification
+        await createNotification(request);
       }
     } catch (e) {
       status = e.toString();
@@ -97,6 +100,88 @@ class SmService extends SimpleMessageServiceBase
     try {
       // Delete devices
       await cleanUpFCMTokens();
+    } catch (e) {
+      status = e.toString();
+    }
+
+    // Send client response
+    var response = StandardResponse();
+    response.status = status;
+    return response;
+  }
+
+  @override
+  Future<Notifications> listNotifications(
+      grpc.ServiceCall call, UserId request) async {
+    var status =
+        'Retrieved notifications successfully for \x1B[36m${request.id}\x1B[0m';
+    var notifications = Notifications();
+
+    try {
+      // Get all notifications of a user
+      notifications = await getAllNotificationFromSingleUser(request);
+    } catch (e) {
+      status = e.toString();
+    }
+
+    // Build client response
+    var response = StandardResponse();
+    response.status = status;
+
+    // Wrap the response into the messages object
+    notifications.response = response;
+    return notifications;
+  }
+
+  @override
+  Future<StandardResponse> markNotificationAsRead(
+      grpc.ServiceCall call, NotificationId request) async {
+    var status = 'Marked the notification \x1B[36m${request.id}\x1B[0m as read';
+
+    try {
+      // Mark a notification as read
+      await markSingleNotificationAsRead(request);
+    } catch (e) {
+      status = e.toString();
+    }
+
+    // Send client response
+    var response = StandardResponse();
+    response.status = status;
+    return response;
+  }
+
+  @override
+  Future<UnreadNotification> countUnreadNotificationCount(
+      grpc.ServiceCall call, UserId request) async {
+    var status = 'Got unread notifications for \x1B[36m${request.id}\x1B[0m';
+    var unreadNotification = UnreadNotification();
+
+    try {
+      // Get all notifications of a user
+      unreadNotification = await countUnreadNotificationOfAUser(request);
+    } catch (e) {
+      status = e.toString();
+    }
+
+    // Build client response
+    var response = StandardResponse();
+    response.status = status;
+
+    // Wrap the response into the messages object
+    unreadNotification.response = response;
+    return unreadNotification;
+  }
+
+  @override
+  Future<StandardResponse> deleteNotification(
+      grpc.ServiceCall call, NotificationId request) async {
+    var status =
+        'Notification \x1B[36m${request.id}\x1B[0m deleted successfully';
+
+    try {
+      // Delete a notification
+      await deleteSingleNotification(request);
     } catch (e) {
       status = e.toString();
     }
